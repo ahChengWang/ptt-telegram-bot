@@ -10,7 +10,10 @@ HEADERS = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
-    )
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "zh-TW,zh;q=0.9",
+    "Connection": "keep-alive",
 }
 TG_TOKEN = os.environ.get("TG_TOKEN")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID")
@@ -58,6 +61,10 @@ def check_new_posts():
     res = requests.get(PTT_URL, headers=HEADERS)
     print(res.text)
     soup = BeautifulSoup(res.text, "html.parser")
+
+    if "Just a moment..." in res.text or "cf-browser-verification" in res.text:
+        print("🚧 被 Cloudflare 擋住了！")
+
     entries = soup.select("div.r-ent div.title a")
     new_info_articles = []
     found_last = False
