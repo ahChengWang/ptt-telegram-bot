@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import subprocess
 
 PTT_URL = "https://www.ptt.cc/bbs/Lifeismoney/index.html"
-HEADERS = {'cookie': 'over18=1'}
+# HEADERS = {'cookie': 'over18=1'}
 TG_TOKEN = os.environ.get("TG_TOKEN")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID")
 STATE_FILE = "last_sent.txt"
@@ -46,45 +46,39 @@ def commit_last_url():
 
 def check_new_posts():
     last_url = load_last_url()
-    res = requests.get(PTT_URL, headers=HEADERS)
+    res = requests.get(PTT_URL)
     soup = BeautifulSoup(res.text, "html.parser")
-    print("soup=" + str(soup))
-    articles = soup.select("div.title a")
-    # print("articles=" + articles)
-
-    if not articles:
-        print("⚠️ 找不到文章")
-        return
-
-    new_articles = []
+    entries = soup.select("div.r-ent div.title a")
+    new_info_articles = []
     found_last = False
 
-    # 收集最新文章，逆序排列（最舊的先推）
-    for tag in reversed(articles):
+    # 從最舊到最新掃描，保證順序一致
+    for tag in reversed(entries):
         title = tag.text.strip()
-        relative_link = tag['href']
-        full_url = "https://www.ptt.cc" + relative_link
+        relative_url = tag["href"]
+        full_url = "https://www.ptt.cc" + relative_url
 
+        # 已發送過的文章，停止往後看
         if full_url == last_url:
             found_last = True
             break
-        else:
-            new_articles.append((title, full_url))
 
-    if not new_articles:
-        print("🔁 沒有新文章")
+        if title.startswith("[情報]"):
+            new_info_articles.append((title, full_url))
+
+    if not new_info_articles:
+        print("🔁 無新 [情報] 文章")
         return
 
-    # 推送新文章（先推最舊的）
-    for title, url in reversed(new_articles):
-        message = f"[PTT省錢版新文章]\n{title}\n{url}"
+    # 發送推播（最舊的在前）
+    for title, url in reversed(new_info_articles):
+        message = f"📢 [情報更新]\n{title}\n{url}"
         send_telegram_message(message)
 
-    # 儲存最新發送過的那一篇
-    latest_url = new_articles[0][1]
-    save_last_url(latest_url)
+    # 記錄這次推播的最新那篇（第一篇最靠近最新的）
+    latest_sent_url = new_info_articles[0][1]
+    save_last_url(latest_sent_url)
     commit_last_url()
-
 
 if __name__ == "__main__":
     check_new_posts()

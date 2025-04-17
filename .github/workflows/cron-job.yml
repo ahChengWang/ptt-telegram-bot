@@ -2,7 +2,7 @@ name: PTT Cron Job
 
 on:
   schedule:
-    - cron: "*/5 * * * *"  # 每 5 分鐘執行一次（UTC 時區）
+    - cron: "*/10 * * * *"  # 每 5 分鐘執行一次（UTC 時區）
   workflow_dispatch:       # 可手動觸發測試
 
 jobs:
