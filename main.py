@@ -62,6 +62,7 @@ def check_new_posts():
     last_url = load_last_urls()
     res = requests.get(PTT_URL, headers=HEADERS)
     soup = BeautifulSoup(res.text, "html.parser")
+    latest_title = ""
 
     containers = soup.select("div.e7-container")
     new_info_articles = []
@@ -75,21 +76,21 @@ def check_new_posts():
             continue
 
         if "情報" not in type_tag.text.strip() or "全台捐血" in link_tag.text.strip():
+
             continue
 
         full_url = "https://www.pttweb.cc" + link_tag["href"]
         title = title_tag.text.strip()
 
         if full_url == last_url:
+            latest_title = title
             break
 
         new_info_articles.append((title, full_url))
 
     if not new_info_articles:
-        print("🔁 無新 [情報] 文章")
+        print("🔁 無新 [情報] 文章:近一篇 " + latest_title)
         return
-
-    latest_sent_url123 = new_info_articles[1][1]
 
     # 發送推播（最舊的在前）
     for title, url in reversed(new_info_articles):
