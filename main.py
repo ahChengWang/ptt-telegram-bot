@@ -1,5 +1,6 @@
 import os
 import requests
+import time
 from bs4 import BeautifulSoup
 import subprocess
 
@@ -16,14 +17,13 @@ HEADERS = {
     "Connection": "keep-alive",
     "Cookie": "_gid=GA1.2.951163347.1744857895; _ga_DZ6Y3BY9GW=GS1.1.1744887842.171.1.1744887842.0.0.0; _ga=GA1.2.1231348713.1606230154; cf_clearance=C5t15vY8Ic4rcFYVc8wT4qplXpLAeXHC17TyE6abueo-1744887843-1.2.1.1-.pbW1QYvzjnrD.STJsIis52f6PMq958qqmhXOpakyst.TpGMk2t2g95di9jR0wsQyaDCfifM6rqsKkhjc10JJdrk0PqbWb_f_8FuxFP2mEOFH55pFozw8PH4hHjYqpsRDYbhtLvbJzZTcz0S2QZ4dLpnHN_wZmPYE4HiirUOcE8FhFjkpGeC__bfBgQVGdYqzi2S5u_JaAFtfvMUK6qnRDwCdN15DA_0et_aZNY1.0IFsTeQ2cqniR6LW68DG96x64JZ91uUGLOI1hExtqLTvhgIRuH6A474_rkMdogYX3nlTAssypyjs3nWnP4fOqddIvdO904A1D34o0UI0uJ72jfYnvFk9Knv1q4MhvjqsEI"
 }
+
 TG_TOKEN = os.environ.get("TG_TOKEN")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID")
 STATE_FILE = "last_sent.txt"
 
 
 def send_telegram_message(message):
-    # print("TG_TOKEN=", str(TG_TOKEN))
-    # print("TG_CHAT_ID=", str(TG_CHAT_ID))
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     data = {
         "chat_id": TG_CHAT_ID,
@@ -34,16 +34,17 @@ def send_telegram_message(message):
         print("✅ 已推送 Telegram")
     else:
         print("❌ 傳送失敗：", response.text)
+    time.sleep(3)
 
 
-def load_last_url():
+def load_last_urls():
     if not os.path.exists(STATE_FILE):
         return None
     with open(STATE_FILE, "r", encoding="utf-8") as f:
         return f.read().strip()
 
 
-def save_last_url(url):
+def save_last_urls(url):
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         f.write(url)
 
@@ -58,7 +59,7 @@ def commit_last_url():
 
 
 def check_new_posts():
-    last_url = load_last_url()
+    last_url = load_last_urls()
     res = requests.get(PTT_URL, headers=HEADERS)
     soup = BeautifulSoup(res.text, "html.parser")
 
@@ -73,7 +74,7 @@ def check_new_posts():
         if not (type_tag and title_tag and link_tag):
             continue
 
-        if "情報" not in type_tag.text.strip():
+        if "情報" not in type_tag.text.strip() or "全台捐血" in link_tag.text.strip():
             continue
 
         full_url = "https://www.pttweb.cc" + link_tag["href"]
@@ -88,14 +89,17 @@ def check_new_posts():
         print("🔁 無新 [情報] 文章")
         return
 
+    latest_sent_url123 = new_info_articles[1][1]
+
     # 發送推播（最舊的在前）
     for title, url in reversed(new_info_articles):
         message = f"📢 [情報更新]\n{title}\n{url}"
+
         send_telegram_message(message)
 
     # 記錄最新一篇文章
-    latest_sent_url = new_info_articles[0][1]
-    save_last_url(latest_sent_url)
+    latest_sent_url = new_info_articles[1][1]
+    save_last_urls(latest_sent_url)
     commit_last_url()
 
 
