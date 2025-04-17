@@ -4,7 +4,14 @@ from bs4 import BeautifulSoup
 import subprocess
 
 PTT_URL = "https://www.ptt.cc/bbs/Lifeismoney/index.html"
-# HEADERS = {'cookie': 'over18=1'}
+HEADERS = {
+    "cookie": "over18=1",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    )
+}
 TG_TOKEN = os.environ.get("TG_TOKEN")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID")
 STATE_FILE = "last_sent.txt"
