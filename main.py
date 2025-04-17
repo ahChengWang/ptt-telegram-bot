@@ -50,7 +50,7 @@ def check_new_posts():
     soup = BeautifulSoup(res.text, "html.parser")
     print("soup=" + str(soup))
     articles = soup.select("div.title a")
-    print("articles=" + articles)
+    # print("articles=" + articles)
 
     if not articles:
         print("⚠️ 找不到文章")
