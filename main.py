@@ -49,6 +49,7 @@ def commit_last_url():
 def check_new_posts():
     last_url = load_last_url()
     res = requests.get(PTT_URL)
+    print(res.text)
     soup = BeautifulSoup(res.text, "html.parser")
     entries = soup.select("div.r-ent div.title a")
     new_info_articles = []
