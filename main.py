@@ -42,7 +42,9 @@ def check_new_posts():
     last_url = load_last_url()
     res = requests.get(PTT_URL, headers=HEADERS)
     soup = BeautifulSoup(res.text, "html.parser")
+    print("soup=" + soup)
     articles = soup.select("div.title a")
+    print("articles=" + articles)
 
     if not articles:
         print("⚠️ 找不到文章")
