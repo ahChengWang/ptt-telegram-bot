@@ -11,6 +11,8 @@ STATE_FILE = "last_sent.txt"
 
 
 def send_telegram_message(message):
+    print("TG_TOKEN=", str(TG_TOKEN))
+    print("TG_CHAT_ID=", str(TG_CHAT_ID))
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     data = {
         "chat_id": TG_CHAT_ID,
@@ -79,6 +81,7 @@ def check_new_posts():
     latest_sent_url = new_info_articles[0][1]
     save_last_url(latest_sent_url)
     commit_last_url()
+
 
 if __name__ == "__main__":
     check_new_posts()
