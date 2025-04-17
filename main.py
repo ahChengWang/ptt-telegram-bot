@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import subprocess
 
-PTT_URL = "https://www.ptt.cc/bbs/Lifeismoney/index.html"
+PTT_URL = "https://www.pttweb.cc/bbs/Lifeismoney"
 HEADERS = {
     "cookie": "over18=1",
     "User-Agent": (
