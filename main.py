@@ -54,7 +54,8 @@ def save_last_urls(url):
 def commit_last_url():
 
     repo_url = f"https://{os.environ['GH_PAT']}@github.com/ahChengWang/ptt-telegram-bot.git"
-
+    print("✅ GH_PAT 前幾碼：", os.environ.get("GH_PAT", "")[:15])
+    print("✅ repo_url ：", repo_url)
     subprocess.run(["git", "config", "--global", "user.name",
                    os.environ.get("GIT_NAME", "ptt-bot")])
     subprocess.run(["git", "config", "--global", "user.email",
