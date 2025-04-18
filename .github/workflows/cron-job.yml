@@ -1,9 +1,9 @@
 name: PTT Cron Job
 
-on:
-  schedule:
-    - cron: "*/10 * * * *"  # 每 5 分鐘執行一次（UTC 時區）
-  workflow_dispatch:       # 可手動觸發測試
+# on:
+#   schedule:
+#     - cron: "*/10 * * * *"  # 每 5 分鐘執行一次（UTC 時區）
+#   workflow_dispatch:       # 可手動觸發測試
 
 permissions:
   contents: write  # 允許寫入 Repo（用於 git commit & push）
