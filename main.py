@@ -4,7 +4,7 @@ import time
 from bs4 import BeautifulSoup
 import subprocess
 
-PTT_URL = "https://www.pttweb.cc/bbs/Lifeismoney"
+PTT_URL = "https://www.pttweb.cc/bbs/Lifeismoney?m=0"
 HEADERS = {
     "cookie": "over18=1",
     "User-Agent": (
@@ -99,7 +99,7 @@ def check_new_posts():
         send_telegram_message(message)
 
     # 記錄最新一篇文章
-    latest_sent_url = new_info_articles[1][1]
+    latest_sent_url = new_info_articles[0][1]
     save_last_urls(latest_sent_url)
     commit_last_url()
 
