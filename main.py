@@ -60,8 +60,7 @@ def commit_last_url():
     subprocess.run(["git", "config", "--global", "user.email",
                    os.environ.get("GIT_EMAIL", "ptt@example.com")])
 
-    subprocess.run(["git", "remote", "set-url",
-                   "origin", repo_url], check=True)
+    subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
 
     subprocess.run(["git", "add", "last_sent.txt"], check=True)
     subprocess.run(
