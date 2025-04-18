@@ -27,7 +27,9 @@ def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     data = {
         "chat_id": TG_CHAT_ID,
-        "text": message
+        "text": message,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True
     }
     response = requests.post(url, data=data)
     if response.status_code == 200:
@@ -94,7 +96,7 @@ def check_new_posts():
 
     # 發送推播（最舊的在前）
     for title, url in reversed(new_info_articles):
-        message = f"📢 [情報更新]\n{title}\n{url}"
+        message = f"<b><b>🌟[情報更新]🌟</b></b>\n{title}\n{url}"
 
         send_telegram_message(message)
 
