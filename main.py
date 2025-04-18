@@ -58,22 +58,24 @@ def commit_last_url():
                    os.environ.get("GIT_NAME", "ptt-bot")])
     subprocess.run(["git", "config", "--global", "user.email",
                    os.environ.get("GIT_EMAIL", "ptt@example.com")])
-
-    # 加上檢查和切換到 main 分支
-    subprocess.run(["git", "checkout", "-B", "main"], check=True)
-
-    # 設定 remote（若已存在可能需 try/except 忽略錯誤）
+    
+    # 先檢查是否有 remote origin，若有則移除
     subprocess.run(["git", "remote", "remove", "origin"], check=False)
     subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
 
-    subprocess.run(["git", "add", STATE_FILE], check=True)
+    # 切回 main 分支（從 detached HEAD 切換）
+    subprocess.run(["git", "checkout", "-B", "main"], check=True)
+
+    # 加入變更、commit
+    subprocess.run(["git", "add", "last_sent.txt"], check=True)
     result = subprocess.run(["git", "commit", "-m", "update last_sent url"],
                             check=False, capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
 
     if "nothing to commit" not in result.stdout:
-        subprocess.run(["git", "push", "origin", "main"], check=True)
+        # ✅ 強制推送，解決 fetch first 錯誤
+        subprocess.run(["git", "push", "--force-with-lease", "origin", "main"], check=True)
         print("✅ 已推送至 GitHub")
     else:
         print("ℹ️ 無需推送：內容未變化")
