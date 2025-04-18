@@ -52,12 +52,21 @@ def save_last_urls(url):
 
 
 def commit_last_url():
-    subprocess.run(["git", "config", "--global", "user.name", "ptt-bot"])
-    subprocess.run(["git", "config", "--global",
-                   "user.email", "ptt-bot@example.com"])
-    subprocess.run(["git", "add", STATE_FILE])
-    subprocess.run(["git", "commit", "-m", "update last_sent url"])
-    subprocess.run(["git", "push"])
+
+    repo_url = f"https://{os.environ['GH_PAT']}@github.com/ahChengWang/ptt-telegram-bot.git"
+
+    subprocess.run(["git", "config", "--global", "user.name",
+                   os.environ.get("GIT_NAME", "ptt-bot")])
+    subprocess.run(["git", "config", "--global", "user.email",
+                   os.environ.get("GIT_EMAIL", "ptt@example.com")])
+
+    subprocess.run(["git", "remote", "set-url",
+                   "origin", repo_url], check=True)
+
+    subprocess.run(["git", "add", "last_sent.txt"], check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "update last_sent url"], check=False)
+    subprocess.run(["git", "push", "origin", "main"], check=True)
 
 
 def check_new_posts():
