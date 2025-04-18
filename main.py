@@ -54,23 +54,24 @@ def save_last_urls(url):
 def commit_last_url():
 
     repo_url = f"https://{os.environ['GH_PAT']}@github.com/ahChengWang/ptt-telegram-bot.git"
-    print("✅ GH_PAT 前幾碼：", os.environ.get("GH_PAT", "")[:15])
-    print("✅ repo_url ：", repo_url)
     subprocess.run(["git", "config", "--global", "user.name",
                    os.environ.get("GIT_NAME", "ptt-bot")])
     subprocess.run(["git", "config", "--global", "user.email",
                    os.environ.get("GIT_EMAIL", "ptt@example.com")])
 
-    subprocess.run(["git", "remote", "add",
-                   "origin", repo_url], check=True)
+    # 加上檢查和切換到 main 分支
+    subprocess.run(["git", "checkout", "-B", "main"], check=True)
 
-    subprocess.run(["git", "add", "last_sent.txt"], check=True)
+    # 設定 remote（若已存在可能需 try/except 忽略錯誤）
+    subprocess.run(["git", "remote", "remove", "origin"], check=False)
+    subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
+
+    subprocess.run(["git", "add", STATE_FILE], check=True)
     result = subprocess.run(["git", "commit", "-m", "update last_sent url"],
                             check=False, capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
 
-    # 只有當真的有 commit 成立時才 push
     if "nothing to commit" not in result.stdout:
         subprocess.run(["git", "push", "origin", "main"], check=True)
         print("✅ 已推送至 GitHub")
