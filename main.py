@@ -64,9 +64,17 @@ def commit_last_url():
                    "origin", repo_url], check=True)
 
     subprocess.run(["git", "add", "last_sent.txt"], check=True)
-    subprocess.run(
-        ["git", "commit", "-m", "update last_sent url"], check=False)
-    subprocess.run(["git", "push", "origin", "main"], check=True)
+    result = subprocess.run(["git", "commit", "-m", "update last_sent url"],
+                            check=False, capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
+
+    # 只有當真的有 commit 成立時才 push
+    if "nothing to commit" not in result.stdout:
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        print("✅ 已推送至 GitHub")
+    else:
+        print("ℹ️ 無需推送：內容未變化")
 
 
 def check_new_posts():
