@@ -3,8 +3,9 @@ import requests
 import time
 from bs4 import BeautifulSoup
 import subprocess
+import cloudscraper
 
-PTT_URL = "https://www.pttweb.cc/bbs/Lifeismoney?m=0"
+PTT_URL = "https://www.ptt.cc/bbs/Lifeismoney/index.html"
 HEADERS = {
     "cookie": "over18=1",
     "User-Agent": (
@@ -56,26 +57,32 @@ def commit_last_url():
     repo_url = f"https://{os.environ['GH_PAT']}@github.com/ahChengWang/ptt-telegram-bot.git"
     subprocess.run(["git", "config", "--global", "user.name",
                    os.environ.get("GIT_NAME", "ptt-bot")])
+    time.sleep(2)
     subprocess.run(["git", "config", "--global", "user.email",
                    os.environ.get("GIT_EMAIL", "ptt@example.com")])
-    
+    time.sleep(2)
+
     # 先檢查是否有 remote origin，若有則移除
     subprocess.run(["git", "remote", "remove", "origin"], check=False)
+    time.sleep(2)
     subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
+    time.sleep(2)
 
     # 切回 main 分支（從 detached HEAD 切換）
     subprocess.run(["git", "checkout", "-B", "main"], check=True)
+    time.sleep(2)
 
     # 加入變更、commit
     subprocess.run(["git", "add", "last_sent.txt"], check=True)
+    time.sleep(2)
     result = subprocess.run(["git", "commit", "-m", "update last_sent url"],
                             check=False, capture_output=True, text=True)
-    print(result.stdout)
-    print(result.stderr)
+    time.sleep(2)
 
     if "nothing to commit" not in result.stdout:
         # ✅ 強制推送，解決 fetch first 錯誤
-        subprocess.run(["git", "push", "--force-with-lease", "origin", "main"], check=True)
+        subprocess.run(["git", "push", "--force-with-lease",
+                       "origin", "main"], check=True)
         print("✅ 已推送至 GitHub")
     else:
         print("ℹ️ 無需推送：內容未變化")
@@ -83,46 +90,49 @@ def commit_last_url():
 
 def check_new_posts():
     last_url = load_last_urls()
-    res = requests.get(PTT_URL, headers=HEADERS)
+    scraper = cloudscraper.create_scraper()  # 模擬瀏覽器
+    res = scraper.get(PTT_URL, headers=HEADERS)
     soup = BeautifulSoup(res.text, "html.parser")
     latest_title = ""
 
-    containers = soup.select("div.e7-container")
+    containers = soup.select("div.title a")
     new_info_articles = []
 
-    for container in containers:
-        type_tag = container.select_one("div.e7-type")
-        title_tag = container.select_one("span.e7-title span")
-        link_tag = container.select_one("a.e7-article-default")
+    if not containers:
+        print("⚠️ 找不到文章")
+        return
 
-        if not (type_tag and title_tag and link_tag):
+    new_articles = []
+    found_last = False
+
+    # 收集最新文章，逆序排列（最舊的先推）
+    for tag in reversed(containers):
+        title = tag.text.strip()
+        relative_link = tag['href']
+        full_url = "https://www.ptt.cc" + relative_link
+
+        if "情報" not in title.strip() or "全台捐血" in title.strip():
             continue
 
-        if "情報" not in type_tag.text.strip() or "全台捐血" in link_tag.text.strip():
-
-            continue
-
-        full_url = "https://www.pttweb.cc" + link_tag["href"]
-        title = title_tag.text.strip()
-
+        latest_title = title
         if full_url == last_url:
-            latest_title = title
+            found_last = True
             break
+        else:
+            new_articles.append((title, full_url))
 
-        new_info_articles.append((title, full_url))
-
-    if not new_info_articles:
+    if not new_articles:
         print("🔁 無新 [情報] 文章:近一篇 " + latest_title)
         return
 
     # 發送推播（最舊的在前）
-    for title, url in reversed(new_info_articles):
+    for title, url in reversed(new_articles):
         message = f"<b><b>🌟[情報更新]🌟</b></b>\n{title}\n{url}"
 
         send_telegram_message(message)
 
     # 記錄最新一篇文章
-    latest_sent_url = new_info_articles[0][1]
+    latest_sent_url = new_articles[0][1]
     save_last_urls(latest_sent_url)
     commit_last_url()
 
